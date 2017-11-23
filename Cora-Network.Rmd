@@ -1,0 +1,183 @@
+---
+title: "Graphs & Networks for CoRA dataset"
+author: "Shivani"
+date: "11/22/2017"
+output: html_document
+---
+
+### Network Visualization 
+
+> This document depicts the anomalies, trauma and pathology data using network visualization, with respect to skeletal elements. The data is modified in terms of nodes and links, as per the requirement for visNetwork visualization and grouped in terms of Skeletal element id. 
+
+> The network visualization  was chosen because it provides an overall view of all the skeletal elements and the associated anomalies, traumas and pathologies. With such a large data set, it becomes difficult to depict all the information in a small space. With the network visualization, the data can be grouped in terms of skeletal element ID and for each skeletal element, the associated set of anomaly, trauma and pathologies can be depicted and visually interpreted easily.
+
+#### Anomaly data grouped by Skeletal element ID
+
+> Skeletal Element ID and the Anomaly ID data are extracted from the respective csv files. Skeletal element ID and anomaly id are then corelated as nodes in the anome data frame. This data frame lists all the nodes that would be connected as part of the network visualization. The links are specified in the se_anom data frame. This data frame specifies the connections between various nodes, mentioned in the anome data frame. Using these 2 data frames, the "visNetwork"" package connects the related nodes together and creates a visualization. 
+
+> This visualization makes it easy to know which skeletal elements are associated with what type of anomalies from a user perspective. Further, for easier differentiation, sorting of the visualization by skeletal element ID is provided. On selecting a specific skeletal element ID, only the network associated with that ID would be highlighted. 
+
+> Each of the skeletal element ID is differentiated further by different colours. Before creating the final network diagram, properties such as title, border and border width are also configured.
+
+```{r, warning=FALSE}
+
+library(igraph)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(animation)
+library('visNetwork')
+
+# Skeletal Element with Anomalies
+anom <- read.csv("anomalys.csv")
+se_anom <- read.csv("se_anomaly.csv")
+se_anom <- se_anom[,c(2:3)]
+
+a <- list(se_anom[,c(1)])
+a <- data.frame(a)
+colnames(a)[1] <- "id"
+a$sb_id <- 0
+
+a$individuating_trait <- 0
+
+se_anom_2 <- se_anom[,c(2:1)]
+colnames(se_anom_2) <- c("from", "to")
+
+anom <- subset(anom, id %in% se_anom_2$from)
+anomo <- rbind(anom, a)
+anomo$sb_id <- NULL
+
+anomo$title <- anomo$individuating_trait
+
+anomo$color.border <-"black"
+
+anomo$borderWidth <- 2
+
+se_anom_2$color <- "gray"
+
+se_anom_2$arrows <- "middle"
+```
+
+```{r, echo=FALSE}
+anomo$color.background <- c("slategray", "tomato", "gold", "blue", "green", "yellow", "orange", "brown", "purple", "violet", "darkred", "pink", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "")
+```
+
+
+```{r}
+visNetwork(anomo, se_anom_2, width="100%", height="900px", main = "Skeletal element ID for Anomaly") %>% visOptions(highlightNearest = TRUE, selectedBy = "id")
+
+```
+
+
+
+#### Trauma data grouped by Skeletal element ID
+
+> Skeletal Element ID and the Trauma ID data are extracted from the respective csv files. Skeletal element ID and trauma id are then corelated as nodes in the trauma data frame. A separate data frame for links is then created to specify which nodes are interconnected. 
+
+> This visualization makes it easy to know which skeletal elements are associated with what type of traumas from a user perspective. Further, for easier differentiation, sorting of the visualization by skeletal element ID is provided. On selecting a specific skeletal element ID, only the traumas associated with that ID would be highlighted. 
+
+> Each of the skeletal element ID is differentiated further by different colours. Before creating the final network diagram, properties such as title, border and border width are also configured.
+
+
+```{r, warning=FALSE}
+
+trauma <- read.csv("traumas.csv")
+trauma <- trauma[,c(1:3)]
+trauma$timing <- NULL
+
+se_trauma <- read.csv("se_trauma.csv")
+se_trauma <- se_trauma[,c(2:4)]
+se_trauma$zone_id <- NULL
+
+a <- list(se_trauma[,c(1)])
+a <- data.frame(a)
+colnames(a)[1] <- "id"
+a$type <- 0
+
+se_trauma_2 <- se_trauma[,c(2:1)]
+colnames(se_trauma_2) <- c("from", "to")
+
+trauma <- subset(trauma, id %in% se_trauma_2$from)
+traumas <- rbind(trauma, a)
+
+
+traumas$color.border <-"black"
+traumas$borderWidth <- 2
+
+se_trauma_2$color <- "gray"
+se_trauma_2$arrows <- "middle"
+
+```
+
+```{r, echo=FALSE}
+traumas$color.background <- c("tomato", "green", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "")
+```
+
+```{r, warning=FALSE}
+
+traumas <- traumas[!duplicated(traumas$id),]
+
+visNetwork(traumas, se_trauma_2, width="100%", height="600px", main = "Skeletal element ID for Trauma") %>% visOptions(highlightNearest = TRUE, selectedBy = "id")
+
+```
+
+
+
+#### Pathology data grouped by Skeletal element ID
+
+> Skeletal Element ID and the Pathology ID data are extracted from the respective csv files. Skeletal element ID and pathology id are then corelated as nodes in the trauma data frame. A separate data frame for links is then created to specify which nodes are interconnected. 
+
+> This visualization makes it easy to know which skeletal elements are associated with what type of pathologies from a user perspective. Further, for easier differentiation, sorting of the visualization by skeletal element ID is provided. On selecting a specific skeletal element ID, only the traumas associated with that ID would be highlighted. 
+
+> Each of the skeletal element ID is differentiated further by different colours. Before creating the final network diagram, properties such as title, border and border width are also configured.
+
+
+
+```{r, warning=FALSE}
+
+pathology <- read.csv("pathologys.csv")
+pathology <- pathology[,c(1:3)]
+ 
+se_pathology <- read.csv("se_pathology.csv")
+se_pathology$id <- NULL
+se_pathology$zone_id <- NULL
+se_pathology$additional_information <- NULL
+se_pathology <- se_pathology[,-c(5:9)]
+ 
+a <- list(se_pathology[,c(1)])
+a <- data.frame(a)
+colnames(a)[1] <- "id"
+a$abnormality_category <- 0
+a$characteristics <- 0
+ 
+ 
+se_pathology_2 <- se_pathology[,c(2,1,3,4)]
+colnames(se_pathology_2) <- c("from", "to", "abnormality_category", "characteristics")
+ 
+pathology <- subset(pathology, id %in% se_pathology_2$from)
+pathologys <- rbind(pathology, a)
+
+pathologys$color.border <-"black"
+pathologys$borderWidth <- 2
+ 
+se_pathology_2$color <- "gray"
+se_pathology_2$arrows <- "middle"
+
+pathologys <- pathologys[!duplicated(pathologys$id),]
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+
+pathologys$color.background <- c("slategray", "tomato", "gold", "blue", "green", "yellow", "orange", "brown", "violet", "darkred", "","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "","", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "")
+
+```
+
+```{r, warning=FALSE}
+
+visNetwork(pathologys, se_pathology_2, width="100%", height="900px", main = "Skeletal element ID for Pathology") %>% visOptions(highlightNearest = TRUE, selectedBy = "id")
+
+```
+
+
